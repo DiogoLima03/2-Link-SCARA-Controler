@@ -10,6 +10,10 @@
 - Chose using the dropdowns the options desired for simulation
 - Then going to the simulink file "main.slx" and clicking run, automatically updates preferences
 
+## PLotting
+- Plotting is showed automatically after running
+- For rerunning some figure, click the button in the top level view (named "mains") in the "main.slx" simulink file (partically usefull for rerunning the SCARA Animation)
+
 ## To change parameters
 - Open "sim_config_parameters.m" inside the folder **configuration**
 - Parameters will be place there by section 
@@ -23,43 +27,43 @@
 ## Folder and Files Explanation
 ```
 C:.
-│   .gitattributes 
-│   .gitignore
-│   initializer.mlx
-│   main.slx
-│   main.slx.autosave
-│   main.slxc
-│   README.md
+│   .gitattributes
+│   .gitignore 
+│   initializer.mlx - File used to Defined the Simulation (runs before simulation to give variables to Simulink) 
+│   main.slx - Simulink Simulation File
+│   main.slx.autosave 
+│   main.slxc 
+│   README.md - Documentation File
 │   SCARARobot.prj 
 │
-├───configuration
-│   │   sim_config_parameters.m
+├───configuration - Simulation configuration folder 
+│   │   sim_config_parameters.m - Robot and Simulation parameters are defines here
 │   │
-│   └───enums
-│           ControllerAction.m
+│   └───enums - Enums for Defining Simulation options in "initializer.mlx" file and in simulink block variant
+│           ControllerAction.m 
 │           ControllerPayloadCompensation.m
 │           ControllerType.m
 │           ExtDisturbances.m
 │           InputSaturation.m
 │           MeasDisturbances.m
-│           Payload.m
+│           Payload.m 
 │           RectangleHollowLink.m
 │           RefGeneration.m
 │           StateObservability.m
 │           SystemSym.m
 │
-├───plot
+├───plot - Folder with scripts for plotting results
 │       Animate2LinkSCARA.m
 │       PlotError.m
 │       PlotInput.m
 │       PlotStatesEstDes.m
-│       plotting_results.m
+│       plotting_results.m - main file that reads the data from simulink and stores it in a struct plotData variable then uses this varaible to run the plotting functions stored in this folder
 │
 ├───resources
 │  
-├───simulation_helper_functions
+├───simulation_helper_functions - functions used in simulink
 │   ├───linear_system
-│   ├───non_linear_system
+│   ├───non_linear_system - Func for dynamics equations, foward/inv kin, observers, ... 
 │   │   │   c_vec.m
 │   │   │   D_mat.m
 │   │   │   f.m
@@ -85,8 +89,8 @@ C:.
 │
 ├───slprj
 │   
-└───System-Analysis and Controller-Designn Workspace
+└───System-Analysis and Controller-Designn Workspace - Folder for storing files related to the study of the system but not used for simulation 
         ideas.txt
         Planning etc.txt
-        system_analisys_and_controller_design.m
+        system_analisys_and_controller_design.m - File used to study and analyse the system (file initialy used)
 ```
