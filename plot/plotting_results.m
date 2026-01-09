@@ -80,24 +80,41 @@ else
     error("plotDatating: Incompatible config: refGeneration")
 end
 
-%% I controller values
+%% I controller values (robust)
 
-plotData.e_i = out.e_i.signals.values;
+% Default outputs (so later code can rely on fields existing)
+plotData.e_i        = [];
+plotData.e_int_q_1  = [];
+plotData.e_int_q_2  = [];
 
-plotData.e_int_q_1 = plotData.e_i(1,:);
-plotData.e_int_q_2 = plotData.e_i(2,:);
+% Check that the signal exists in out
+has_ei = isstruct(out) && isfield(out,'e_i') && ...
+         isstruct(out.e_i) && isfield(out.e_i,'signals') && ...
+         isstruct(out.e_i.signals) && isfield(out.e_i.signals,'values');
 
-if ndims(plotData.e_i) == 3
-    plotData.e_int_q_1     = squeeze(plotData.e_i(1,1,:));
-    plotData.e_int_q_2     = squeeze(plotData.e_i(2,1,:));
+if has_ei
+    plotData.e_i = out.e_i.signals.values;
+
+    % Support both shapes:
+    % - 3D: [2 x 1 x N] (typical Simulink "Structure with Time" for vectors)
+    % - 2D: [2 x N]     (sometimes logged differently)
+    if ndims(plotData.e_i) == 3
+        plotData.e_int_q_1 = squeeze(plotData.e_i(1,1,:));
+        plotData.e_int_q_2 = squeeze(plotData.e_i(2,1,:));
+    else
+        plotData.e_int_q_1 = plotData.e_i(1,:).';
+        plotData.e_int_q_2 = plotData.e_i(2,:).';
+    end
+
+    % Apply index only if idx exists and is non-empty
+    if isfield(plotData,'idx') && ~isempty(plotData.idx)
+        plotData.e_int_q_1 = plotData.e_int_q_1(plotData.idx);
+        plotData.e_int_q_2 = plotData.e_int_q_2(plotData.idx);
+    end
 else
-    plotData.e_int_q_1     = plotData.e_i(1,:).';
-    plotData.e_int_q_2     = plotData.e_i(2,:).';
+    % Optional: warn once (comment out if you prefer silence)
+    % warning('plotting_results:MissingEI','No e_i signal found in out, skipping integral error plots.');
 end
-
-plotData.e_int_q_1     = plotData.e_int_q_1(plotData.idx);
-plotData.e_int_q_2     = plotData.e_int_q_2(plotData.idx);
-
 %% Input torque
 
 plotData.u = out.u.signals.values;

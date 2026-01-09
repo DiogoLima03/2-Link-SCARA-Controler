@@ -30,7 +30,6 @@ function Animate2LinkSCARA(plotData, config)
         error("Animate2LinkSCARA: plotData.step is missing.");
     end
     stride = plotData.step;
-
     dt_frame = Ts * stride;
 
     % --- Strided states ---
@@ -116,46 +115,34 @@ function Animate2LinkSCARA(plotData, config)
     hold(ax,'on'); grid(ax,'on');
     axis(ax,'equal');
 
-    border = 100e-3; 
-    xlim(ax, [-933e-3 - border, 1015e-3 + border]);
-    ylim(ax, [-631.50e-3 - border, l1 + l2 + border]);
-
     xlabel(ax,'x [m]');
     ylabel(ax,'y [m]');
     title(ax,'2-Link SCARA, real-time animation with EE trajectory');
 
     % Base marker
     plot(ax, 0, 0, 'k.', 'MarkerSize', 14);
-    
-        % -------------------------
+
+    % -------------------------
     % Static background geometry
     % -------------------------
-    hold(ax,'on');
-
     % 1) Rectangle: width 933, height 495
-    % "right corner should be at origin" -> interpret as top-right corner at (0,0)
-    % so rectangle spans x in [-933, 0], y in [-495, 0]
+    % "right corner should be at origin" -> top-right corner at (0,0)
     rectW = 933e-3;
     rectH = 495e-3;
-    rectPos = [-rectW, -rectH, rectW, rectH];  % [x y width height] with top-right at (0,0)
+    rectPos = [-rectW, -rectH, rectW, rectH];  % [x y w h]
     rectangle(ax, 'Position', rectPos, 'EdgeColor', 'k', 'LineWidth', 1.5);
 
-    % 2) Circles (radius 273) at given centers
+    % 2) Circles (radius 273 mm) at given centers
     r = 273e-3/2;
-
     c1 = [-192.19e-3, -495e-3];
     viscircles(ax, c1, r, 'Color', 'k', 'LineWidth', 1.5);
 
     c2 = [-740.81e-3, -495e-3];
     viscircles(ax, c2, r, 'Color', 'k', 'LineWidth', 1.5);
 
-    % 3) Straight line from (-933, -431.50) to (933, -431.50)
+    % 3) Straight line (using your current code value)
     yLine = -631.50e-3;
     plot(ax, [-933e-3, 933e-3], [yLine, yLine], 'k-', 'LineWidth', 1.5);
-
-    % Optional: keep these shapes behind the robot and traces
-    % (MATLAB usually draws later plots on top, but this ensures ordering)
-    % uistack(findobj(ax,'Type','rectangle'),'bottom'); % rectangle only
 
     % --- Plot trajectories (actual always, desired only if tracking) ---
     hPathAll = plot(ax, x2_all, y2_all, '-', 'LineWidth', 1);      % context
@@ -166,11 +153,62 @@ function Animate2LinkSCARA(plotData, config)
 
     if hasDesired && plotDesired
         hPathDes = plot(ax, x2d_all, y2d_all, '--', 'LineWidth', 1.5);
-        legendHandles(end+1) = hPathDes;
-        legendEntries{end+1} = 'EE path (desired)';
+        legendHandles(end+1) = hPathDes; %#ok<AGROW>
+        legendEntries{end+1} = 'EE path (desired)'; %#ok<AGROW>
     end
 
     legend(ax, legendHandles, legendEntries, 'Location','best');
+
+    % ----------------------------
+    % Smart limits (NOW works, because geometry/paths exist)
+    % ----------------------------
+    border = 100e-3;
+
+    xlim_default = [-933e-3, 1015e-3] + [-border, border];
+    ylim_default = [-631.50e-3, l1 + l2] + [-border, border];
+
+    % Bounds from known geometry + trajectories (more robust than ax.Children)
+    xAll = [ ...
+        0; ...
+        -933e-3; 933e-3; ...
+        -933e-3; 0; ...
+        (c1(1) + r); (c1(1) - r); ...
+        (c2(1) + r); (c2(1) - r); ...
+        x2_all(:) ...
+    ];
+
+    yAll = [ ...
+        0; ...
+        yLine; yLine; ...
+        -495e-3; 0; ...
+        (c1(2) + r); (c1(2) - r); ...
+        (c2(2) + r); (c2(2) - r); ...
+        y2_all(:) ...
+    ];
+
+    if hasDesired && plotDesired
+        xAll = [xAll; x2d_all(:)];
+        yAll = [yAll; y2d_all(:)];
+    end
+
+    xAll = xAll(isfinite(xAll));
+    yAll = yAll(isfinite(yAll));
+
+    xmin = min(xAll); xmax = max(xAll);
+    ymin = min(yAll); ymax = max(yAll);
+
+    xlim_final = xlim_default;
+    ylim_final = ylim_default;
+
+    if xmin < xlim_default(1) || xmax > xlim_default(2)
+        xlim_final = [min(xlim_default(1), xmin - border), max(xlim_default(2), xmax + border)];
+    end
+    if ymin < ylim_default(1) || ymax > ylim_default(2)
+        ylim_final = [min(ylim_default(1), ymin - border), max(ylim_default(2), ymax + border)];
+    end
+
+    xlim(ax, xlim_final);
+    ylim(ax, ylim_final);
 
     % Link line objects
     hLink1 = plot(ax, [0 0], [0 0], 'LineWidth', 3);
@@ -185,7 +223,7 @@ function Animate2LinkSCARA(plotData, config)
 
     % Improve responsiveness
     set(fig, 'Renderer', 'opengl');
-    
+
     % --- Animation loop ---
     for k = 1:N
         if ~isvalid(fig) || ~isvalid(ax)
@@ -205,7 +243,8 @@ function Animate2LinkSCARA(plotData, config)
         set(hTrace, 'XData', x2_all(1:k), 'YData', y2_all(1:k));
 
         % Update overlay text
-        hTxt.String = sprintf("t=%.3f/%.3f s, q1=%.3f rad, q2=%.3f rad", k*dt_frame, N*dt_frame, q1(k), q2(k));
+        hTxt.String = sprintf("t=%.3f/%.3f s, q1=%.3f rad, q2=%.3f rad", ...
+                              k*dt_frame, N*dt_frame, q1(k), q2(k));
 
         drawnow limitrate;
 
