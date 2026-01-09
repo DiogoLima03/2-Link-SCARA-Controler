@@ -63,6 +63,8 @@ C:.
 │  
 ├───simulation_helper_functions - functions used in simulink
 │   ├───linear_system
+|   |       linear_matrixs_generator.m - generates functions for getting the linear matrices A, B, C, D around a input eq point x_eq
+|   |
 │   ├───non_linear_system - Func for dynamics equations, foward/inv kin, observers, ... 
 │   │   │   c_vec.m
 │   │   │   D_mat.m

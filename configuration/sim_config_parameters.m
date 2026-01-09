@@ -35,6 +35,8 @@ config.robot.payload.mass = 0.4;              % [kg]
 % --- Gravity configuration ---
 config.robot.gravity.alpha = 0;               % [rad]
 
+
+
 %% Input / Motor Saturation
 config.robot.motor.saturation.joint_1 = 80;   % [Nm]
 config.robot.motor.saturation.joint_2 = 25;   % [Nm]
@@ -336,7 +338,7 @@ config.stateObservability.extKalFil.meas_noise = diag([0.0001, 0.0001]); % 0.000
 
 
 
-%%
+%% copied from Aerial robotics for inspirations
 % %% controller params
 % config.cntrl_FL.params.uav_mass = 2.25; % 2.25 kg
 % Ix = 2.07e-2;
