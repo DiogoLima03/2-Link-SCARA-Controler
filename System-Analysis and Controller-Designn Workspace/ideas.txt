@@ -1,0 +1,8 @@
+
+-See parameters unscented kalman filter
+
+-aditionar "if" no robbot_ddot() para quando incluirmos a payload in the dynamics
+
+-check the cutoff of the band limited white noises to be in max 50 Hz right now is 250Hz, also see the cut off for the measurement white noise
+
+
