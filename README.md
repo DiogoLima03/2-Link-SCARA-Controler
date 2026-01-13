@@ -1,5 +1,11 @@
 # 2 Link Scara Controller
 
+## Requirements
+- MATLAB R2023b or newer
+- Simulink
+- Control System Toolbox
+- Symbolic Math Toolbox
+
 ## To run:
 - Open "main.slx" file in simulink 
 - Run the file normally in the run button

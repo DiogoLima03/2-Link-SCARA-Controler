@@ -543,7 +543,7 @@ param_vec = [l1_v, l2_v, lc1_v, lc2_v, ...
 
 Symb_f_jacobian = simplify(subs(LSSFWP.A, sym_vec, param_vec));
 
-f_jacobian = matlabFunction(Symb_f_jacobian, 'File','f_jacobian_sym.m', 'Vars', {q1, q2, w1, w2, u1, u2});
+%f_jacobian = matlabFunction(Symb_f_jacobian, 'File','f_jacobian_sym.m', 'Vars', {q1, q2, w1, w2, u1, u2});
 
 
 %% LQR design (discreat)

@@ -38,6 +38,9 @@ function [] = linMatGen(config)
     % --- External payload ---
     m_ext_v = config.robot.payload.mass;
     
+    % external payload that the observer expects
+    m_ext_obsv_v = config.stateObservability.extKalFil.payload_mass;
+
     % --- Gravity configuration ---
     alpha_v = config.robot.gravity.alpha;
     
@@ -139,10 +142,10 @@ function [] = linMatGen(config)
     Symb_C_P = simplify(subs(LSSF.C, sym_vec, param_vec));
     Symb_D_P = simplify(subs(LSSF.D, sym_vec, param_vec));
     
-    A_eq_P = matlabFunction(Symb_A_P, 'File','A_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
-    B_eq_P = matlabFunction(Symb_B_P, 'File','B_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
-    C_eq_P = matlabFunction(Symb_C_P, 'File','C_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
-    D_eq_P = matlabFunction(Symb_D_P, 'File','D_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
+    A_eq_P = matlabFunction(Symb_A_P, 'File','A_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+    B_eq_P = matlabFunction(Symb_B_P, 'File','B_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+    C_eq_P = matlabFunction(Symb_C_P, 'File','C_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+    D_eq_P = matlabFunction(Symb_D_P, 'File','D_eq_P.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
 
     % Linear state-space Form Without Payload (LSSFWP)
     
@@ -164,9 +167,23 @@ function [] = linMatGen(config)
     Symb_C_WP = simplify(subs(LSSFWP.C, sym_vec, param_vec));
     Symb_D_WP = simplify(subs(LSSFWP.D, sym_vec, param_vec));
     
-    A_eq_WP = matlabFunction(Symb_A_WP, 'File','A_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
-    B_eq_WP = matlabFunction(Symb_B_WP, 'File','B_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
-    C_eq_WP = matlabFunction(Symb_C_WP, 'File','C_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
-    D_eq_WP = matlabFunction(Symb_D_WP, 'File','D_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2, u1, u2]});
+    A_eq_WP = matlabFunction(Symb_A_WP, 'File','A_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+    B_eq_WP = matlabFunction(Symb_B_WP, 'File','B_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+    C_eq_WP = matlabFunction(Symb_C_WP, 'File','C_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+    D_eq_WP = matlabFunction(Symb_D_WP, 'File','D_eq_WP.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
+
+    % Linear SP with Payload that the Observer expects
+    
+    sym_vec = [l1, l2, lc1, lc2, ...
+               m1, m2, I1, I2, ...
+               D1, D2, alpha, m_ext];
+    
+    param_vec = [l1_v, l2_v, lc1_v, lc2_v, ...
+                 m1_v, m2_v, I1_v, I2_v, ...
+                 D1_v, D2_v, alpha_v, m_ext_obsv_v];
+    
+    Symb_A_P_obsv = simplify(subs(LSSF.A, sym_vec, param_vec));
+    
+    A_eq_P_obsv = matlabFunction(Symb_A_P_obsv, 'File','A_eq_P_obsv.m', 'Vars', {[q1, q2, dot_q1, dot_q2], [u1, u2]});
 
 end

@@ -39,23 +39,3 @@ dk4 = A4 * dx4;
 % --- RK4 discrete Jacobian ---
 F = I + (Ts/6)*(dk1 + 2*dk2 + 2*dk3 + dk4);
 end
-
-function config = localConfig()
-% robot params
-config.robot.geom.l1  = 0.6;
-config.robot.geom.l2  = 0.6;
-config.robot.geom.lc1 = 0.3;
-config.robot.geom.lc2 = 0.3;
-
-config.robot.dyn.m1 = 2.6136;
-config.robot.dyn.m2 = 2.6136;
-config.robot.dyn.I1 = 0.07973658;
-config.robot.dyn.I2 = 0.07973658;
-config.robot.dyn.D1 = 0.1;
-config.robot.dyn.D2 = 0.1;
-
-config.robot.payload.mass = 0.4;
-config.robot.gravity.alpha = 0;
-
-config.sim.var.time_step = 0.004;
-end

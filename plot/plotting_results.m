@@ -80,24 +80,41 @@ else
     error("plotDatating: Incompatible config: refGeneration")
 end
 
-%% I controller values (robust)
+%% I controller values (robust) - store full vectors + time
 
-% Default outputs (so later code can rely on fields existing)
 plotData.e_i        = [];
 plotData.e_int_q_1  = [];
 plotData.e_int_q_2  = [];
+plotData.e_i_t      = [];   % time base of e_i, if available
 
-% Check that the signal exists in out
-has_ei = isstruct(out) && isfield(out,'e_i') && ...
-         isstruct(out.e_i) && isfield(out.e_i,'signals') && ...
-         isstruct(out.e_i.signals) && isfield(out.e_i.signals,'values');
+% --- Robust detection and retrieval of e_i (NO hasVariable) ---
+plotData.has_ei = false;
 
-if has_ei
+if isstruct(out)
+    if isfield(out,'e_i') && ~isempty(out.e_i)
+        plotData.has_ei = true;
+        plotData.ei = out.e_i;
+    end
+
+else
+    % Works for Simulink.SimulationOutput and avoids hasVariable entirely
+    try
+        plotData.ei = out.get('e_i');        % if 'out' is SimulationOutput and e_i exists
+        plotData.has_ei = ~isempty(plotData.ei);
+    catch
+        plotData.has_ei = false;
+        plotData.ei = [];
+    end
+end
+
+if plotData.has_ei 
     plotData.e_i = out.e_i.signals.values;
+    
+    % Capture time if present (Structure with Time often has it)
+    if isfield(out.e_i,'time')
+        plotData.e_i_t = out.e_i.time;
+    end
 
-    % Support both shapes:
-    % - 3D: [2 x 1 x N] (typical Simulink "Structure with Time" for vectors)
-    % - 2D: [2 x N]     (sometimes logged differently)
     if ndims(plotData.e_i) == 3
         plotData.e_int_q_1 = squeeze(plotData.e_i(1,1,:));
         plotData.e_int_q_2 = squeeze(plotData.e_i(2,1,:));
@@ -106,15 +123,13 @@ if has_ei
         plotData.e_int_q_2 = plotData.e_i(2,:).';
     end
 
-    % Apply index only if idx exists and is non-empty
-    if isfield(plotData,'idx') && ~isempty(plotData.idx)
-        plotData.e_int_q_1 = plotData.e_int_q_1(plotData.idx);
-        plotData.e_int_q_2 = plotData.e_int_q_2(plotData.idx);
-    end
+    % Ensure column vectors
+    plotData.e_int_q_1 = plotData.e_int_q_1(:);
+    plotData.e_int_q_2 = plotData.e_int_q_2(:);
 else
-    % Optional: warn once (comment out if you prefer silence)
-    % warning('plotting_results:MissingEI','No e_i signal found in out, skipping integral error plots.');
+    % No e_i found, leave empties
 end
+
 %% Input torque
 
 plotData.u = out.u.signals.values;

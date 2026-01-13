@@ -30,7 +30,7 @@ config.robot.dyn.D1 = 0.1;                    % [kg·m^2/s]
 config.robot.dyn.D2 = 0.1;                    % [kg·m^2/s]
 
 % --- External payload ---
-config.robot.payload.mass = 0.4;              % [kg]
+config.robot.payload.mass = 0.5;              % [kg]
 
 % --- Gravity configuration ---
 config.robot.gravity.alpha = 0;               % [rad]
@@ -167,7 +167,7 @@ config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
 %   PID_zeta_omega --------------------------------------------------------
 config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_p = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_p;
 config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_d = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_d;
-config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_i = diag([1; 1]);
+config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_i = diag([1500; 1500]);
 %   PID_LQR ---------------------------------------------------------------
 config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_p = ...
   -[-9.9088   -0.0000
@@ -175,8 +175,10 @@ config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_p = ...
 config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_d = ...
   -[-4.5606    0.0000
    -0.0000   -8.2476];
-config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_i = diag([9; 9]);
+config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_i = diag([20; 20]);
 % Width Payload Compensation ==============================================
+% mass to be compensated
+config.contrl.non_linear_fdbck_lin.payload.mass = 0.25;
 %   PD_zeta_omega ---------------------------------------------------------
 config.contrl.non_linear_fdbck_lin.payload.PD_zeta_omega.gains.k_p = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_p;
 config.contrl.non_linear_fdbck_lin.payload.PD_zeta_omega.gains.k_d = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_d;
@@ -196,12 +198,8 @@ config.contrl.non_linear_fdbck_lin.payload.PID_LQR.gains.k_i = config.contrl.non
 % time step
 config.contrl.non_linear_fdbck_lin.param.I_controller.intStep = config.sim.var.time_step;
 % clamoing e_i_prev (max)
-config.contrl.non_linear_fdbck_lin.param.I_controller.clamp_max = [0.1; 0.1];
+config.contrl.non_linear_fdbck_lin.param.I_controller.clamp_max = [100; 100];
 
-%% I controller var
-
-% logging for later plot
-config.contrl.I_controller.e_i = zeros(2,length(0:config.sim.var.time_step:config.sim.var.sim_time));
 %% Measurement Noise
 
 config.disturbances.measurements.noise.encoders.timeStep = config.sim.var.time_step; % [s]
@@ -270,6 +268,10 @@ config.disturbances.external.noise.covariance = [ ...
         config.disturbances.external.noise.tau_2.stdrdev, ...
     config.disturbances.external.noise.tau_2.variance ];
 
+% Constant Force
+config.disturbances.external.constForce = [10;
+                                           10]; % Nm
+
 %% State Reconstruction: Derivative with Low Pass Filter
 
 % low pass filter freq
@@ -283,6 +285,8 @@ config.stateObservability.stateReconstruction.DirtyDev.cutoffFreq = 3; % [Hz]
 config.stateObservability.stateReconstruction.DirtyDev.timeConst = 1/(2*pi*config.stateObservability.stateReconstruction.DirtyDev.cutoffFreq); % [s]
 
 %% Extended Kalman-Filter
+
+config.stateObservability.extKalFil.payload_mass = config.contrl.non_linear_fdbck_lin.payload.mass; % [Kg]
 
 % initial covariances - how sure you are that your real initial conditions
 % macth the conditions specified in the observer (low because its a simulation)
@@ -335,61 +339,3 @@ config.stateObservability.extKalFil.meas_noise = diag([0.0001, 0.0001]); % 0.000
 % Decreasing Q relative to R makes the EKF behave more like a model-based predictor, smooth but potentially inaccurate.
 % 
 % Correct tuning is not about "small vs large" in absolute terms, but about the ratio between Q and R.
-
-
-
-%% copied from Aerial robotics for inspirations
-% %% controller params
-% config.cntrl_FL.params.uav_mass = 2.25; % 2.25 kg
-% Ix = 2.07e-2;
-% Iy = 2.10e-2;
-% Iz = 3.6235401e-2;
-% config.cntrl_FL.params.uav_inertia = diag([Ix;Iy;Iz]); %Inertia
-% config.cntrl_PDPlus.intrinsic = 1; % the orientation error is in world frame
-% config.cntrl_PDPlus.gains.Kp = diag([12;8;12]);
-% config.cntrl_PDPlus.gains.Kv = diag([7;7;6]);
-% config.cntrl_PDPlus.gains.KI_p = diag([2;2;2]); 
-% config.cntrl_PDPlus.gains.KR = diag([200;200;150]);
-% config.cntrl_PDPlus.gains.Kw = diag([50;50;50]);
-% config.cntrl_PDPlus.gains.KI_R = diag([0;0;0]);%70
-% config.cntrl_PDPlus.param.IntStep = config.sim_var.time_step;
-% %%saturations 
-% config.sat.maxThrust = 100^2;
-% config.sat.minThrust = 16^2;
-% 
-% 
-% %wrench map params
-% alpha_angle = deg2rad(20);
-% k_f = 11.5e-4;
-% k_tau = 0.000023884;
-% lp = 0.4;
-% p_c = [alpha_angle;k_f;k_tau;lp];
-% 
-% %% Tutorial TO-DO : replace the eye(6,6) by a function called 
-% % myWrenchMap(k_tau,k_f,alpha_angle,0,lp)
-% %config.cntrl_FL.params.uav_wrenchMap = eye(6,6);
-% config.cntrl_FL.params.uav_wrenchMap =[0,0.000340627852634927,-0.000340627852634927,4.81681954832854e-20,0.000340627852634927,-0.000340627852634928;0.000393323164824519,-0.000196661582412260,-0.000196661582412259,0.000393323164824519,-0.000196661582412260,-0.000196661582412259;0.00108064651390379,0.00108064651390379,0.00108064651390379,0.00108064651390379,0.00108064651390379,0.00108064651390379;0,0.000381421329622740,0.000381421329622740,5.39368023625879e-20,-0.000381421329622740,-0.000381421329622740;-0.000440427414664708,-0.000220213707332354,0.000220213707332354,0.000440427414664708,0.000220213707332354,-0.000220213707332354;0.000134885647374957,-0.000134885647374957,0.000134885647374957,-0.000134885647374957,0.000134885647374957,-0.000134885647374957];
-% %config.cntrl_FL.params.uav_wrenchMap =  myWrenchMap(k_tau,k_f,alpha_angle,0,lp);
-% 
-% 
-% 
-% %% simulation params
-% config.sim.params.uav_mass =  2.25; %T0 %2.25 % this is where I can apply the perturbations
-% config.sim.params.uav_inertia = diag([Ix;Iy;Iz]); 
-% config.sim.params.uav_wrenchMap = getfthexWmap(p_c); % wrench map
-% 
-% 
-% %% trajectory generation
-% 
-% config.traj.params.wp1.p_i = [0.0;0.0;0.6];
-% config.traj.params.wp1.p_f  = [0.7;-0.5;1.0];
-% config.traj.params.wp1.rpy_i = [0;0;0];
-% config.traj.params.wp1.rpy_f = deg2rad([0;0;0]);
-% 
-% %%trajectory coefficients
-% a0 = [0;0;6;-15;10;0;0;0]; %rest2restquintic
-% config.traj.params.rest2rest = a0;
-% config.traj.params.total_time =  5; 
-% 
-% 
-% %% end
