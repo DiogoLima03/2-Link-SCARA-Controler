@@ -5,6 +5,7 @@
 - Simulink
 - Control System Toolbox
 - Symbolic Math Toolbox
+- Image Processing Toolbox
 
 ## To run:
 - Open "main.slx" file in simulink 
@@ -15,6 +16,7 @@
 - Go to the section of **Defining simulation**
 - Chose using the dropdowns the options desired for simulation
 - Then going to the simulink file "main.slx" and clicking run, automatically updates preferences
+- Note if changed the robot parameters insure that is selected True in Reload Functions to upadate offline generated functions.
 
 ## PLotting
 - Plotting is showed automatically after running
@@ -43,21 +45,29 @@ C:.
 │   SCARARobot.prj 
 │
 ├───configuration - Simulation configuration folder 
-│   │   sim_config_parameters.m - Robot and Simulation parameters are defines here
-│   │
-│   └───enums - Enums for Defining Simulation options in "initializer.mlx" file and in simulink block variant
-│           ControllerAction.m 
-│           ControllerPayloadCompensation.m
-│           ControllerType.m
-│           ExtDisturbances.m
-│           InputSaturation.m
-│           MeasDisturbances.m
-│           Payload.m 
-│           RectangleHollowLink.m
-│           RefGeneration.m
-│           StateObservability.m
-│           SystemSym.m
-│
+|   ├───fcn_parameters_calc - Helper Fncs to calculate parameters
+│   |       RectangleHollowLink.m - calculates Links mass and inertia based on rectangle cross section values
+│   |   sim_config_parameters.m - Robot and Simulation parameters are defines here
+|
+├───images - Images for the Maks of the subsystems blocks
+├───MATLAB_system_helpers - Helper fnc not related to simulation
+│   ├───enums - Enums for Defining Simulation options in "initializer.mlx" file and in simulink block variant
+│   |       ControllerAction.m 
+│   |       ControllerPayloadCompensation.m
+│   |       ControllerType.m
+│   |       ExtDisturbances.m
+│   |       InputSaturation.m
+│   |       MeasDisturbances.m
+│   |       Payload.m 
+│   |       RefGeneration.m
+│   |       StateObservability.m
+│   |       SystemSym.m
+│   └───functions
+|           ensure_linear_system_functions.mlx - Checks if there is the offline linear matrices and updates if commanded
+|           generate_localConfig_from_workspace.m - Based on the parameters creates an code generation compatible file "localConfig.m"
+|           localConfig.m
+|           requirementsCheck.mlx - Checks if the user has installed all the required toolboxes
+|
 ├───plot - Folder with scripts for plotting results
 │       Animate2LinkSCARA.m
 │       PlotError.m
@@ -68,7 +78,15 @@ C:.
 ├───resources
 │  
 ├───simulation_helper_functions - functions used in simulink
-│   ├───linear_system
+│   ├───linear_system - linear system matrices
+|   |       A_eq_P.m - robot with Payload
+|   |       A_eq_P_obsv.m - for using with an observer
+|   |       A_eq_WP.m - robot without Payload
+|   |       B_eq_P.m
+|   |       C_eq_P.m
+|   |       C_eq_WP.m
+|   |       D_eq_P.m
+|   |       D_eq_WP.m
 |   |       linear_matrixs_generator.m - generates functions for getting the linear matrices A, B, C, D around a input eq point x_eq
 |   |
 │   ├───non_linear_system - Func for dynamics equations, foward/inv kin, observers, ... 
@@ -76,6 +94,7 @@ C:.
 │   │   │   D_mat.m
 │   │   │   f.m
 │   │   │   foward_kin.m
+|   |   |   f_payload.m
 │   │   │   G_vec.m
 │   │   │   inverse_kin.m
 │   │   │   J.m
@@ -83,6 +102,7 @@ C:.
 │   │   │   J_T.m
 │   │   │   M.m
 │   │   │   robot_ddq.m
+|   |   |   robot_dqq_payload.m
 │   │   │   W_ext.m
 │   │   │
 │   │   └───ExtKalFil
