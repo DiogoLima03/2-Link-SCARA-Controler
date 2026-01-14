@@ -1,5 +1,5 @@
 function config = localConfig()
-% Auto-generated from workspace variable 'config' on 13-Jan-2026 17:13:58
+% Auto-generated from workspace variable 'config' on 14-Jan-2026 11:23:32
 % THIS FILE IS AUTO-GENERATED. DO NOT EDIT. Generated from './MATLAB_system_helpers/functions/generate_localConfig_from_workspace.m'
 
 % robot params
@@ -23,7 +23,7 @@ config.sim.var.time_step = 0.0040000000000000001;
 
 % controller configuration
 config.sim.mode.controllerConfig.action = ControllerAction.PD_zeta_omega;
-config.sim.mode.controllerConfig.payloadCompensation = ControllerPayloadCompensation.Active;
+config.sim.mode.controllerConfig.payloadCompensation = ControllerPayloadCompensation.NotActive;
 
 % EKF / state observability configuration
 config.stateObservability.extKalFil.payload_mass = 0.25;
