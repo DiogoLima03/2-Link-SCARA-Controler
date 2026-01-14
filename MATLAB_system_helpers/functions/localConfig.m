@@ -1,5 +1,5 @@
 function config = localConfig()
-% Auto-generated from workspace variable 'config' on 14-Jan-2026 12:38:31
+% Auto-generated from workspace variable 'config' on 14-Jan-2026 12:57:39
 % THIS FILE IS AUTO-GENERATED. DO NOT EDIT. Generated from './MATLAB_system_helpers/functions/generate_localConfig_from_workspace.m'
 
 % robot params
