@@ -210,12 +210,47 @@ function Animate2LinkSCARA(plotData, config)
     xlim(ax, xlim_final);
     ylim(ax, ylim_final);
 
+    neonGreen = [0.0, 1.0, 0.35];
+
     % Link line objects
     hLink1 = plot(ax, [0 0], [0 0], 'LineWidth', 3);
-    hLink2 = plot(ax, [0 0], [0 0], 'LineWidth', 3);
+    hLink2 = plot(ax, [0 0], [0 0], 'LineWidth', 3, 'Color', neonGreen); % <-- add back
+    hEE    = plot(ax, x2_all(1), y2_all(1), 'o', 'MarkerSize', 6, 'LineWidth', 1.5); % <-- add back
 
-    % End-effector marker
-    hEE = plot(ax, x2_all(1), y2_all(1), 'o', 'MarkerSize', 6, 'LineWidth', 1.5);
+
+    % --- Visual tweak parameters ---
+    link2_cut = 0.15;           % cut 20% of link2 for drawing (visual only)
+    alpha2    = 1 - link2_cut;  % 0.8 -> draw 80% of link2
+    
+    grip_width  = 0.10;         % [m] distance between fingers (tune)
+    grip_length = 0.10;         % [m] finger length (tune)
+    
+    % --- Replace hLink2 with a shortened visual link2 line ---
+    % (keep hLink2 handle name if you want, or use a new one)
+    % hLink2 already exists in your code, so we will reuse it as "short link2".
+    
+    % --- Original end-effector point marker (at original x2,y2) ---
+    hTip = plot(ax, x2_all(1), y2_all(1), 'o', ...
+    'MarkerSize', 8, ...
+    'MarkerFaceColor', neonGreen, ...
+    'MarkerEdgeColor', 'k');
+
+    % --- Gripper line objects: two fingers + crossbar (|__|) ---
+    hGripL = plot(ax, [0 0], [0 0], ...
+        'LineWidth', 2, ...
+        'Color', neonGreen);
+    
+    hGripR = plot(ax, [0 0], [0 0], ...
+        'LineWidth', 2, ...
+        'Color', neonGreen);
+    
+    hGripB = plot(ax, [0 0], [0 0], ...
+        'LineWidth', 2, ...
+        'Color', neonGreen);
+
+    
+    % Optional: If you want the EE marker to be the "shortened link end" instead,
+    % you can keep hEE where it is. Here we keep hEE at the original x2,y2 as before.
 
     % Text overlay
     hTxt = text(ax, 0.02, 0.98, "", 'Units','normalized', ...
@@ -229,26 +264,71 @@ function Animate2LinkSCARA(plotData, config)
         if ~isvalid(fig) || ~isvalid(ax)
             break;
         end
-
-        % Use precomputed kinematics
+    
+        % Use precomputed kinematics (true joint and EE positions)
         x1 = x1_all(k); y1 = y1_all(k);
         x2 = x2_all(k); y2 = y2_all(k);
-
-        % Update robot graphics
+    
+        % --- Shortened visual endpoint for link2 (80% of the way from joint2 to EE) ---
+        x2s = x1 + alpha2*(x2 - x1);
+        y2s = y1 + alpha2*(y2 - y1);
+    
+        % Update link1 (full)
         set(hLink1, 'XData', [0 x1],  'YData', [0 y1]);
-        set(hLink2, 'XData', [x1 x2], 'YData', [y1 y2]);
-        set(hEE,    'XData', x2,      'YData', y2);
-
-        % Update trace-so-far
+    
+        % Update link2 (shortened for drawing)
+        set(hLink2, 'XData', [x1 x2s], 'YData', [y1 y2s]);
+    
+        % Keep EE marker at the ORIGINAL tip (x2,y2)
+        set(hEE, 'XData', x2, 'YData', y2);
+    
+        % Point marker at original tip (explicit)
+        set(hTip, 'XData', x2, 'YData', y2);
+    
+        % --- Gripper at the ORIGINAL tip, oriented with link2 direction ---
+        dx = x2 - x1;
+        dy = y2 - y1;
+        L  = hypot(dx, dy);
+    
+        if L < 1e-9
+            % Degenerate case, hide gripper
+            set(hGripL, 'XData', [NaN NaN], 'YData', [NaN NaN]);
+            set(hGripR, 'XData', [NaN NaN], 'YData', [NaN NaN]);
+            set(hGripB, 'XData', [NaN NaN], 'YData', [NaN NaN]);
+        else
+            % Unit vectors: u along link2, v perpendicular
+            ux = dx / L;  uy = dy / L;
+            vx = -uy;     vy = ux;
+    
+            % Build a "|__|" shape:
+            % Two fingers start at the tip, offset sideways by +/- width/2,
+            % and extend backward along -u by grip_length.
+            w2 = grip_width / 2;
+    
+            % Finger base points (near the tip)
+            pL0 = [x2 + vx*w2, y2 + vy*w2];
+            pR0 = [x2 - vx*w2, y2 - vy*w2];
+    
+            % Finger end points (extend backward along -u)
+            pL1 = [pL0(1) - ux*grip_length, pL0(2) - uy*grip_length];
+            pR1 = [pR0(1) - ux*grip_length, pR0(2) - uy*grip_length];
+    
+            % Update finger lines
+            set(hGripL, 'XData', [pL0(1) pL1(1)], 'YData', [pL0(2) pL1(2)]);
+            set(hGripR, 'XData', [pR0(1) pR1(1)], 'YData', [pR0(2) pR1(2)]);
+    
+            % Bottom bar connecting the finger ends (the "__" part)
+            set(hGripB, 'XData', [pL1(1) pR1(1)], 'YData', [pL1(2) pR1(2)]);
+        end
+    
+        % Update trace-so-far (still using original EE)
         set(hTrace, 'XData', x2_all(1:k), 'YData', y2_all(1:k));
-
+    
         % Update overlay text
         hTxt.String = sprintf("t=%.3f/%.3f s, q1=%.3f rad, q2=%.3f rad", ...
                               k*dt_frame, N*dt_frame, q1(k), q2(k));
-
+    
         drawnow limitrate;
-
-        % Real-time pacing
         pause(dt_frame);
     end
 

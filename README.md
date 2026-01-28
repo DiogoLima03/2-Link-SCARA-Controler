@@ -1,4 +1,5 @@
 # 2 Link Scara Controller
+repo: https://github.com/DiogoLima03/2-Link-SCARA-Controler.git
 
 ## Requirements
 - MATLAB R2023b or newer
@@ -9,28 +10,26 @@
 
 ## To run:
 - Open "main.slx" file in simulink 
-- Run the file normally in the run button
+- Run the file in the run button
 
 ## To define the simulation desired (e.g. controller/observer type):
 - Open "initializer.mlx" file in MATLAB
 - Go to the section of **Defining simulation**
 - Chose using the dropdowns the options desired for simulation
 - Then going to the simulink file "main.slx" and clicking run, automatically updates preferences
-- Note if changed the robot parameters insure that is selected True in Reload Functions to upadate offline generated functions.
+- Note if changed the robot parameters insure that is selected True in Reload Functions to upadate offline generated functions (if left always True simulation will become very slow).
 
 ## PLotting
 - Plotting is showed automatically after running
-- For rerunning some figure, click the button in the top level view (named "mains") in the "main.slx" simulink file (partically usefull for rerunning the SCARA Animation)
+- For rerunning some figure, click the button in the top level view (named "main") in the "main.slx" simulink file (partically usefull for rerunning the SCARA Animation)
 
 ## To change parameters
 - Open "sim_config_parameters.m" inside the folder **configuration**
-- Parameters will be place there by section 
+- Parameters will be place there by sections 
 
 ### Notes:
 - Pay attention that in the "initializer.mlx" file, in the section **Defining simulation**, some dropdown options might not be implemented yet, confirm in simulink if it has been actually implemented
 - Some parameters may depende of the options selected in **Defining simulation** section, those dependencies are implemented in MATLAB code in the "sim_config_parameters.m" file or inside MATlAB Function Block in Simulink like for the case of the Non-Linear controller Feedback Linearisation inside the Virtual Controller block. 
-- For the case of the Extended Kalman Filter Simulink Block changing the parameters will not update this implementation as this is code generation sensitive (meaning MATLAB doesn't allow for external parameter dependencies to be used) and the linearised A matrix around a equilibrium point x defined by the input of fucntion "myStateTransitionFcn" is implemented offline. Likewise for other functions used on this Simulink Block.
-
 
 ## Folder and Files Explanation
 ```

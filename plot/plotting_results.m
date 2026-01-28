@@ -1,7 +1,7 @@
 plotData.t = out.x.time;
 plotData.x = out.x.signals.values;
 
-% --- Stride (downsample for plotting only) ---
+% --- Stride (downsample for plotting only doesnt always work) ---
 plotData.N = numel(plotData.t);
 
 %plotData.targetPts = 50000;                 % 10k–100k is typical, tune as needed

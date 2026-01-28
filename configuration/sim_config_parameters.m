@@ -1,4 +1,4 @@
-%% Robot Parameters
+%% Robot Parameters used in the Controller
 
 % --- Link geometry ---
 config.robot.geom.l1  = 0.6;                    % [m]
@@ -29,13 +29,48 @@ config.robot.dyn.I2 = config.robot.dyn.I1;    % [kg·m^2]
 config.robot.dyn.D1 = 0.1;                    % [kg·m^2/s]
 config.robot.dyn.D2 = 0.1;                    % [kg·m^2/s]
 
-% --- External payload ---
-config.robot.payload.mass = 0.5;              % [kg]
+% --- External payload that the controller assumes ---
+config.contrl.non_linear_fdbck_lin.payload.mass = 0.5;
 
 % --- Gravity configuration ---
 config.robot.gravity.alpha = 0;               % [rad]
 
+%% Robot Parameters used to simulate the plant
 
+% --- Link geometry ---
+config.robot_plant.geom.l1  = 0.6;                    % [m]
+config.robot_plant.geom.l2  = 0.6;                    % [m]
+config.robot_plant.geom.lc1 = config.robot_plant.geom.l1/2; % [m]
+config.robot_plant.geom.lc2 = config.robot_plant.geom.l2/2; % [m]
+
+% --- Cross-section geometry ---
+config.robot_plant.cs.b_outer = 0.060;              % [m]
+config.robot_plant.cs.h       = 0.060;              % [m]
+config.robot_plant.cs.t       = 5e-3;               % [m]
+config.robot_plant.cs.L       = 0.6;                % [m]
+config.robot_plant.cs.rho     = 3960;               % [kg/m^3]
+
+% --- Mass and inertia ---
+[config.robot_plant.dyn.m1, config.robot_plant.dyn.I1] = RectangleHollowLink( ...
+    config.robot_plant.cs.b_outer, ...
+    config.robot_plant.cs.h, ...
+    config.robot_plant.cs.t, ...
+    config.robot_plant.cs.t, ...
+    config.robot_plant.cs.L, ...
+    config.robot_plant.cs.rho );
+
+config.robot_plant.dyn.m2 = config.robot.dyn.m1;    % [kg]
+config.robot_plant.dyn.I2 = config.robot.dyn.I1;    % [kg·m^2]
+
+% --- Joint damping ---
+config.robot_plant.dyn.D1 = 0.1;                    % [kg·m^2/s]
+config.robot_plant.dyn.D2 = 0.1;                    % [kg·m^2/s]
+
+% --- External payload ---
+config.robot.payload.mass = 2.8;                    % [kg]
+
+% --- Gravity configuration ---
+config.robot_plant.gravity.alpha = 0;               % [rad]
 
 %% Input / Motor Saturation
 config.robot.motor.saturation.joint_1 = 80;   % [Nm]
@@ -140,16 +175,16 @@ if config.sim.mode.refGeneration == RefGeneration.Regulation
     config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.settling_time.joint_2 = 1.5;
 elseif config.sim.mode.refGeneration == RefGeneration.Trajectory
     config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.settling_time.joint_1 = 0.3;  % considering a 2% settling time (advised [0.15, 0.5])
-    config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.settling_time.joint_2 = 0.3;
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.settling_time.joint_2 = 0.3; %0.3
 else
     error("Infalid trag generation simulation selection.");
 end
 
 %       joint 1
-config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_1 = 0.8;               % damping ratio - 0.7=good compromise, small overshot (=~5%)
+config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_1 = 0.7;               % damping ratio - 0.7=good compromise, small overshot (=~5%)
 config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.omega.joint_1 = 4/(config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_1*config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.settling_time.joint_1);% natural frequency
 %       joint 2
-config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_2 = 0.9;               % damping ratio - 0.7=good compromise, small overshot (=~5%)
+config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_2 = 0.7;               % damping ratio - 0.7=good compromise, small overshot (=~5%)
 config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.omega.joint_2 = 4/(config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_2*config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.settling_time.joint_2);% natural frequency
 %       k_p
 config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_p = diag([config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.omega.joint_1^2;...
@@ -158,27 +193,40 @@ config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_p = diag([co
 config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_d = diag([2*config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_1*config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.omega.joint_1;...
                                                                               2*config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.zeta.joint_2*config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.omega.joint_2]);
 %   PD_LQR ----------------------------------------------------------------
-config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p = ...
-  -[-9.9088   -0.0000
-   -0.0000   -9.8341];
-config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
-  -[-4.5606    0.0000
-   -0.0000   -8.2476];
+if config.sim.mode.refGeneration == RefGeneration.Regulation
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p = ...
+          -[ -299.5681    0.0000
+              0.0000     -299.5681];
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
+          -[-26.2465    0.0000
+             0.0000  -26.2465];
+elseif config.sim.mode.refGeneration == RefGeneration.Trajectory
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p = ...
+          -[-9.9088   -0.0000
+           -0.0000   -9.8341];
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
+          -[-4.5606    0.0000
+           -0.0000   -8.2476];    
+else
+    error("Infalid trag generation simulation selection.");
+end
+
+
 %   PID_zeta_omega --------------------------------------------------------
 config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_p = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_p;
 config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_d = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_d;
 config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_i = diag([1500; 1500]);
 %   PID_LQR ---------------------------------------------------------------
-config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_p = ...
-  -[-9.9088   -0.0000
-   -0.0000   -9.8341];
-config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_d = ...
-  -[-4.5606    0.0000
-   -0.0000   -8.2476];
-config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_i = diag([20; 20]);
+config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_p = config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p;
+config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_d = config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d;
+config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_i = config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_i;
+
+
 % Width Payload Compensation ==============================================
 % mass to be compensated
-config.contrl.non_linear_fdbck_lin.payload.mass = 0.25;
+config.contrl.non_linear_fdbck_lin.payload.mass = 0.5;
+
+
 %   PD_zeta_omega ---------------------------------------------------------
 config.contrl.non_linear_fdbck_lin.payload.PD_zeta_omega.gains.k_p = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_p;
 config.contrl.non_linear_fdbck_lin.payload.PD_zeta_omega.gains.k_d = config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_d;
@@ -275,7 +323,7 @@ config.disturbances.external.constForce = [10;
 %% State Reconstruction: Derivative with Low Pass Filter
 
 % low pass filter freq
-config.stateObservability.stateReconstruction.DevLowPassFilt.cutoffFreq = 5; % 3[Hz] 
+config.stateObservability.stateReconstruction.DevLowPassFilt.cutoffFreq = 3; % 5[Hz] 
 config.stateObservability.stateReconstruction.DevLowPassFilt.angVelocity = 2*pi*config.stateObservability.stateReconstruction.DevLowPassFilt.cutoffFreq; % [rad/s]
 
 %% State Reconstruction: Dirty Derivative

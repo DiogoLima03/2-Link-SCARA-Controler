@@ -1,5 +1,5 @@
 function output = G_vec(q, config)
-%G_vec Gravity vector G(q) 
+% G_vec Gravity vector G(q) 
 
     % States
     q1 = q(1);

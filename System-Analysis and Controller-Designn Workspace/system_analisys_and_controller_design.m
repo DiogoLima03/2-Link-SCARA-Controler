@@ -563,10 +563,12 @@ Ad = sysd.A;
 Bd = sysd.B;
 
 % Gains
-Q = diag([100 100 1 50]);
+Q = diag([100000 100000 100 100]);
 R = diag([1 1]);
 
 K = dlqr(Ad, Bd, Q, R);
 
 Kp = -K(:,1:2)
 Kd = -K(:,3:4)
+
+disp("_______________");
