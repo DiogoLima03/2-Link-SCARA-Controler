@@ -58,16 +58,17 @@ config.robot_plant.cs.rho     = 3960;               % [kg/m^3]
     config.robot_plant.cs.t, ...
     config.robot_plant.cs.L, ...
     config.robot_plant.cs.rho );
-
-config.robot_plant.dyn.m2 = config.robot.dyn.m1;    % [kg]
-config.robot_plant.dyn.I2 = config.robot.dyn.I1;    % [kg·m^2]
+config.robot_plant.dyn.m1 = config.robot_plant.dyn.m1*1.2;
+config.robot_plant.dyn.I1 = config.robot_plant.dyn.I1*1.2;
+config.robot_plant.dyn.m2 = config.robot.dyn.m1*1.2;    % [kg]
+config.robot_plant.dyn.I2 = config.robot.dyn.I1*1.2;    % [kg·m^2]
 
 % --- Joint damping ---
-config.robot_plant.dyn.D1 = 0.1;                    % [kg·m^2/s]
-config.robot_plant.dyn.D2 = 0.1;                    % [kg·m^2/s]
+config.robot_plant.dyn.D1 = 0.1*1.2;                    % [kg·m^2/s]
+config.robot_plant.dyn.D2 = 0.1*1.2;                    % [kg·m^2/s]
 
 % --- External payload ---
-config.robot.payload.mass = 2.8;                    % [kg]
+config.robot.payload.mass = 1;                    % [kg]
 
 % --- Gravity configuration ---
 config.robot_plant.gravity.alpha = 0;               % [rad]
@@ -163,6 +164,15 @@ end
 config.sim.var.init_cond.states_vec = [config.sim.var.init_cond.ang_pos;
                                        config.sim.var.init_cond.ang_vel];
 
+%% Linear controller PD (LQR)
+
+config.contrl.linear.LQR.x = ;
+config.contrl.linear.LQR.u = [0; 0];
+config.contrl.linear.LQR.Q = diag([100 100 1 1]);
+config.contrl.linear.LQR.R = diag([1 1 1 1]);
+config.contrl.linear.LQR.k = linear_controller_LQR(x', u', Q, R);
+
+
 %% Non-Linear Controller params (Feedback linearisation)
 
 % No Payload Compensation =================================================
@@ -195,18 +205,18 @@ config.contrl.non_linear_fdbck_lin.no_payload.PD_zeta_omega.gains.k_d = diag([2*
 %   PD_LQR ----------------------------------------------------------------
 if config.sim.mode.refGeneration == RefGeneration.Regulation
     config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p = ...
-          -[ -299.5681    0.0000
-              0.0000     -299.5681];
-    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
-          -[-26.2465    0.0000
-             0.0000  -26.2465];
-elseif config.sim.mode.refGeneration == RefGeneration.Trajectory
-    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p = ...
           -[-9.9088   -0.0000
            -0.0000   -9.8341];
     config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
           -[-4.5606    0.0000
-           -0.0000   -8.2476];    
+           -0.0000   -8.2476];
+elseif config.sim.mode.refGeneration == RefGeneration.Trajectory
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p = ...
+          -[ -299.5681    0.0000
+              0.0000     -299.5681];
+    config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d = ...
+          -[-26.2465    0.0000
+             0.0000  -26.2465];    
 else
     error("Infalid trag generation simulation selection.");
 end
@@ -219,7 +229,7 @@ config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_i = diag([1
 %   PID_LQR ---------------------------------------------------------------
 config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_p = config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_p;
 config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_d = config.contrl.non_linear_fdbck_lin.no_payload.PD_LQR.gains.k_d;
-config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_i = config.contrl.non_linear_fdbck_lin.no_payload.PID_zeta_omega.gains.k_i;
+config.contrl.non_linear_fdbck_lin.no_payload.PID_LQR.gains.k_i = diag([15; 15]);
 
 
 % Width Payload Compensation ==============================================

@@ -52,7 +52,7 @@ function PlotError(plotData, config)
         % h_e_q1_est = plot(ax0, t, e_q1_est, 'LineWidth', 1.2);
         % h_e_q2_est = plot(ax0, t, e_q2_est, 'LineWidth', 1.2);
     
-        ylabel(ax0, 'e_q_int [rad]', 'Interpreter','tex');
+        ylabel(ax0, 'Integral Error e_q_int [rad]', 'Interpreter','tex');
         title(ax0, 'Tracking Errors');
         grid(ax0,'on');
     
@@ -81,7 +81,7 @@ function PlotError(plotData, config)
     h_e_q1_est = plot(ax1, t, e_q1_est, 'LineWidth', 1.2);
     h_e_q2_est = plot(ax1, t, e_q2_est, 'LineWidth', 1.2);
 
-    ylabel(ax1, 'e_q [rad]', 'Interpreter','tex');
+    ylabel(ax1, 'Proportional Error e_q [rad]', 'Interpreter','tex');
     %title(ax1, 'Tracking Errors');
     grid(ax1,'on');
 
@@ -107,7 +107,7 @@ function PlotError(plotData, config)
     h_e_dq1_est = plot(ax2, t, e_dot_q1_est, 'LineWidth', 1.2);
     h_e_dq2_est = plot(ax2, t, e_dot_q2_est, 'LineWidth', 1.2);
 
-    ylabel(ax2, 'e_{dot q} [rad/s]', 'Interpreter','tex');
+    ylabel(ax2, 'Derivative Error e_{dot q} [rad/s]', 'Interpreter','tex');
     grid(ax2,'on');
 
     lg2 = legend(ax2, ...
